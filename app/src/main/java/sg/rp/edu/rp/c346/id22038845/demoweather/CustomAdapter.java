@@ -39,10 +39,14 @@ public class CustomAdapter extends ArrayAdapter<Weather> {
         Weather currentWeather = al.get(position);
 
         tv.setText(currentWeather.toString());
-        if(currentWeather.getForecast().contains("Fair")){
-            Picasso.get().load("https://www.nea.gov.sg/assets/images/icons/weather-bg/FA.png").into(iv);
-        } else if (currentWeather.getForecast().contains("Cloudy")){
-            Picasso.get().load("https://www.nea.gov.sg/assets/images/icons/weather-bg/CL.png").into(iv);
+        if(currentWeather.getForecast().contains("Clear") || currentWeather.getForecast().contains("clear")){
+            Picasso.get().load("https://img.icons8.com/?size=512&id=8LM7-CYX4BPD&format=png").into(iv);
+        } else if(currentWeather.getForecast().contains("Cloudy") || currentWeather.getForecast().contains("cloudy") ){
+            Picasso.get().load("https://img.icons8.com/?size=2x&id=rhba9Nt5N4jA&format=png").into(iv);
+        }else if(currentWeather.getForecast().contains("Thunder")||currentWeather.getForecast().contains("thunder")){
+            Picasso.get().load("https://img.icons8.com/?size=512&id=ziNIfsFS8p_p&format=png").into(iv);
+        }else if(currentWeather.getForecast().contains("Rain")||currentWeather.getForecast().contains("rain")||currentWeather.getForecast().contains("drizzle")){
+            Picasso.get().load("https://img.icons8.com/?size=2x&id=ulJA5JddHJKv&format=png").into(iv);
         }
 
         return rowView;
