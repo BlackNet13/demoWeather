@@ -1,11 +1,19 @@
 package sg.rp.edu.rp.c346.id22038845.demoweather;
 
-import androidx.appcompat.app.AppCompatActivity;
+import static java.lang.System.load;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,6 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide; /*https://guides.codepath.com/android/Displaying-Images-with-the-Glide-Library*/
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.squareup.picasso.Picasso;
@@ -50,6 +59,13 @@ public class MainActivity extends AppCompatActivity {
 
     Set<String> set;
 
+    RecyclerView rv;
+    ArrayList<String> countryList;
+    ArrayList<String> weatherList;
+    ArrayList<String> tempList;
+    LinearLayoutManager layoutManager;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         tv2 = findViewById(R.id.tV2);
         tv3 = findViewById(R.id.tV3);
         iV1 = findViewById(R.id.iV1);
+        rv = findViewById(R.id.rv);
 
         lv = findViewById(R.id.lv);
         client = new AsyncHttpClient();
@@ -69,11 +86,63 @@ public class MainActivity extends AppCompatActivity {
         aaWeather = new CustomAdapter(MainActivity.this, R.layout.row, alWeather);
         lv.setAdapter(aaWeather);
 
+        countryList = new ArrayList<>();
+        countryList.add("Singapore");
+        countryList.add("Malaysia");
+        countryList.add("Japan");
+
+    //https://youtu.be/Zj9ZE6_HtEo?feature=shared
+
+       weatherList = new ArrayList<>();
+        tempList = new ArrayList<>();
+
+       /* for(int x = 0; x<countryList.size(); x++){
+            final int index = x;
+            client.get("https://wttr.in/" + countryList.get(x).toString() + "?format=j1", new JsonHttpResponseHandler() {
+                String forecast;
+                String temp;
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+
+                    try {
+                        JSONArray jsonArrItems1 = response.getJSONArray("nearest_area");
+                        JSONArray jsonArrItems2 = response.getJSONArray("current_condition");
+                        JSONObject firstObj1 = jsonArrItems1.getJSONObject(0);
+                        JSONObject firstObj2 = jsonArrItems2.getJSONObject(0);
+
+                        temp = firstObj2.getString("temp_C");
+                        JSONArray jsonArrForecasts1 = firstObj1.getJSONArray("country");
+                        JSONArray jsonArrForecasts2 = firstObj2.getJSONArray("weatherDesc");
+
+                        JSONObject jsonObjForecast1 = jsonArrForecasts1.getJSONObject(0);
+                        JSONObject jsonObjForecast2 = jsonArrForecasts2.getJSONObject(0);
+                        forecast = jsonObjForecast2.getString("value");
+
+                    } catch (JSONException e) {
+                    }
+
+                    tempList.set(index,temp + "°C");
+                    weatherList.set(index,forecast);
+
+                }
+            });
+        }*/
+
+
+
+
+
+
+        layoutManager = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false);
+
+
+
         prefs = getSharedPreferences("arrayStorage",MODE_PRIVATE);
         location = new ArrayList<>();
-
-
-
+        RvAdapter rvAdapter = new RvAdapter(countryList);
+        rv.setLayoutManager(layoutManager);
+        rv.setAdapter(rvAdapter);
 
         btnLoc.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
                 set.clear();
                 set.addAll(location);
                 prefEdit.putStringSet("arrayStorage",set);
+
                 prefEdit.apply();
 
                 fetchWeather();
@@ -101,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
 
                 // Extract information from the selected Weather object
                 String locationItem = selectedWeather.getArea();
-
 
                 client.get("https://wttr.in/" + locationItem + "?format=j1", new JsonHttpResponseHandler() {
                     String area;
@@ -130,11 +199,11 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         tv1.setText(area);
+
                         tv2.setText(temp + "°C");
                         tv3.setText(forecast);
 
                         String currentWeather = forecast;
-
 
                         if(currentWeather.contains("Clear") || currentWeather.contains("clear")){
                             Picasso.get().load("https://img.icons8.com/?size=512&id=8LM7-CYX4BPD&format=png").resize(500, 500).into(iV1);
@@ -146,6 +215,8 @@ public class MainActivity extends AppCompatActivity {
                             Picasso.get().load("https://img.icons8.com/?size=2x&id=ulJA5JddHJKv&format=png").into(iV1);
                         }
 
+
+
                     }
                 });
             }
@@ -153,6 +224,57 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    class RvAdapter extends RecyclerView.Adapter<RvAdapter.HolderI> {
+        ArrayList<String> data;
+        public RvAdapter(ArrayList<String> data){
+            this.data = data;
+        }
+
+        @NonNull
+        @Override
+        public HolderI onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.rv_item, parent, false);
+            return new HolderI(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull HolderI holder, int position) {
+            holder.tvD.setText(data.get(position));
+            Glide.with(MainActivity.this).load("https://img.icons8.com/?size=512&id=8LM7-CYX4BPD&format=png").into(holder.imgW);
+            holder.tvC.setText("50");
+
+            /*if(weatherList.get(position).contains("Clear") || weatherList.get(position).contains("clear")){
+                Glide.with(MainActivity.this).load("https://img.icons8.com/?size=512&id=8LM7-CYX4BPD&format=png").into(holder.imgW);
+            } else if(weatherList.get(position).contains("Cloudy") || weatherList.get(position).contains("cloudy") ){
+                Glide.with(MainActivity.this).load("https://img.icons8.com/?size=2x&id=rhba9Nt5N4jA&format=png").into(holder.imgW);
+            }else if(weatherList.get(position).contains("Thunder")||weatherList.get(position).contains("thunder")){
+                Glide.with(MainActivity.this).load("https://img.icons8.com/?size=512&id=ziNIfsFS8p_p&format=png").into(holder.imgW);
+            }else if(weatherList.get(position).contains("Rain")||weatherList.get(position).contains("rain")||weatherList.get(position).contains("drizzle")){
+                Glide.with(MainActivity.this).load("https://img.icons8.com/?size=2x&id=ulJA5JddHJKv&format=png").into(holder.imgW);
+            }*/
+
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return data.size();
+        }
+
+        class HolderI extends RecyclerView.ViewHolder{
+            TextView tvD, tvC;
+            ImageView imgW;
+
+            public HolderI(@NonNull View itemView){
+                super(itemView);
+                tvD = itemView.findViewById(R.id.tvD);
+                imgW = itemView.findViewById(R.id.imgW);
+                tvC = itemView.findViewById(R.id.tvC);
+            }
+        }
+    }
+
 
     private void fetchWeather() {
         Set<String> set = prefs.getStringSet("arrayStorage", null);
@@ -226,58 +348,6 @@ public class MainActivity extends AppCompatActivity {
         set.addAll(location);
         prefEdit.putStringSet("arrayStorage",set);
         prefEdit.apply();
-
-            //alWeather.clear();
-            //fetchWeather();
-
-
-            /*alWeather.clear();
-            //client.get("https://api.data.gov.sg/v1/environment/2-hour-weather-forecast",new JsonHttpResponseHandler(){
-
-            Set<String> set = prefs.getStringSet("arrayStorage", null);
-            location.clear();
-            location.addAll(set);
-
-            for (String item : location) {
-                client.get("https://wttr.in/" + item + "?format=j1", new JsonHttpResponseHandler() {
-                    String area;
-                    String forecast;
-
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                        try {
-                            //JSONArray jsonArrItems = response.getJSONArray("items");
-                            JSONArray jsonArrItems1 = response.getJSONArray("nearest_area");
-                            JSONArray jsonArrItems2 = response.getJSONArray("weather");
-                            JSONObject firstObj1 = jsonArrItems1.getJSONObject(0);
-                            JSONObject firstObj2 = jsonArrItems2.getJSONObject(0);
-                            //JSONArray jsonArrForecasts = firstObj.getJSONArray("forecasts");
-                            JSONArray jsonArrForecasts1 = firstObj1.getJSONArray("areaName");
-                            JSONArray jsonArrForecasts2 = firstObj2.getJSONArray("hourly");
-
-                            //for(int i = 0; i<jsonArrForecasts.length(); i++){
-                            //get jsonObject first then get the string in the object
-                            //JSONObject jsonObjForecast = jsonArrForecasts.getJSONObject(i);
-                            JSONObject jsonObjForecast1 = jsonArrForecasts1.getJSONObject(0);
-                            JSONObject jsonObjForecast2 = jsonArrForecasts2.getJSONObject(0);
-                            area = jsonObjForecast1.getString("value");
-                            forecast = jsonObjForecast2.getJSONArray("weatherDesc").getJSONObject(0).getString("value");
-                            //forecast = jsonObjForecast.getString("forecast");
-                            Weather weather = new Weather(area, forecast); //insert values into weather object
-                            alWeather.add(weather);
-                            //}
-                        } catch (JSONException e) {
-                        }
-                        //code to display list view
-                        aaWeather.notifyDataSetChanged();
-
-
-                    }//end onSuccess
-                });
-
-
-
-        }*/
 
 
         }
